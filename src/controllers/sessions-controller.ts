@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { prisma } from '@/database/prisma';
 import { authConfig } from '@/configs/auth';
 import { sign } from 'jsonwebtoken';
-import { compare } from 'bcrypt';
+import { compare, hash } from 'bcrypt';
 import { z } from 'zod';
 
 class SessionsController {
@@ -36,7 +36,9 @@ class SessionsController {
       expiresIn
     })
 
-    return response.json({ token });
+    const { password: hashedPassword, ...userWithoutPassword } = user;
+
+    return response.json({ token, user: userWithoutPassword });
   }
 }
 
