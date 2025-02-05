@@ -1,9 +1,11 @@
 import { Request, Response } from 'express';
+import { prisma } from '@/database/prisma';
 import { hash } from 'bcrypt';
 import { z } from 'zod';
+import { AppError } from '@/utils/AppError';
 
 class UsersController {
-  create(request: Request, response: Response) {
+  async create(request: Request, response: Response) {
     const bodySchema = z.object({
       name: z.string().trim().min(2),
       email: z.string().email(),
@@ -12,9 +14,25 @@ class UsersController {
 
     const { name, email, password } = bodySchema.parse(request.body);
 
-    const hashedPassword = hash(password, 8);
+    const userWithSameEmail = await prisma.user.findFirst({ where: { email } });
 
-    return response.json({ message: 'ok' });
+    if (userWithSameEmail) {
+      throw new AppError('User with same email already exists');
+    }
+
+    const hashedPassword = await hash(password, 8);
+
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+      }
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    return response.json(userWithoutPassword);
   }
 }
 
