@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { hash } from 'bcrypt';
 import { z } from 'zod';
 
 class UsersController {
@@ -10,6 +11,8 @@ class UsersController {
     })
 
     const { name, email, password } = bodySchema.parse(request.body);
+
+    const hashedPassword = hash(password, 8);
 
     return response.json({ message: 'ok' });
   }
