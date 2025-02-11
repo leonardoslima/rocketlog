@@ -57,6 +57,10 @@ class DeliveryLogsController {
       }
     });
 
+    if (!delivery) {
+      return response.status(404).json({ message: "Delivery not found" });
+    }
+
     if (request.user?.role === "costumer" && request.user.id !== delivery?.userId) {
       throw new AppError("the user can only view their deliveries", 401);
     }
